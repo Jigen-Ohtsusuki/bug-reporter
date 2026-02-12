@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bug Report Pro</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+        :root {
+            --primary: #1a73e8;
+            --surface: var(--tg-theme-bg-color, #ffffff);
+            --on-surface: var(--tg-theme-text-color, #202124);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #f1f3f4);
+            --error: #d93025;
+            --easing: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body { font-family: 'Google Sans', sans-serif; background-color: var(--secondary-bg); color: var(--on-surface); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-shell { width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 20px; }
+        .field-label { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; display: block; }
+        .custom-select { position: relative; z-index: 1000; }
+        .select-trigger { background: var(--surface); border-radius: 20px; padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.04); transition: 0.3s var(--easing); }
+        .options-menu { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border-radius: 20px; margin-top: 8px; max-height: 0; overflow-y: auto; transition: 0.4s var(--easing); z-index: 1001; box-shadow: 0 10px 30px rgba(0,0,0,0.12); opacity: 0; pointer-events: none; }
+        .options-menu.open { max-height: 280px; opacity: 1; pointer-events: all; }
+        .option { padding: 16px 20px; font-size: 15px; border-bottom: 1px solid rgba(0,0,0,0.03); }
+        .option:hover { background: var(--primary); color: white; }
+        .input-group { background: var(--surface); border-radius: 24px; padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
+        textarea { width: 100%; min-height: 140px; border: none; outline: none; background: transparent; color: var(--on-surface); font-family: inherit; font-size: 16px; resize: vertical; }
+        .btn-send { background: var(--primary); color: #fff; border: none; width: 100%; padding: 22px; border-radius: 100px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(26, 115, 232, 0.2); transition: 0.3s; }
+        .btn-send:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <div class="custom-select" id="customSelect">
+            <span class="field-label">Android Version *</span>
+            <div class="select-trigger" id="trigger"><span id="selected-val">Choose SDK</span><span>▼</span></div>
+            <div class="options-menu" id="menu"></div>
+        </div>
+        <div>
+            <span class="field-label">Issue Details *</span>
+            <div class="input-group"><textarea id="issue" placeholder="Please explain the bug..." oninput="validate()"></textarea></div>
+        </div>
+        <button class="btn-send" id="submitBtn" onclick="submit()" disabled>Submit & Next Step</button>
+    </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const menu = document.getElementById('menu');
+        const trigger = document.getElementById('trigger');
+        const selectedVal = document.getElementById('selected-val');
+        const submitBtn = document.getElementById('submitBtn');
+        let currentSDK = "";
+
+        for (let i = 36; i >= 21; i--) {
+            const opt = document.createElement('div');
+            opt.className = 'option';
+            opt.innerText = `Android SDK ${i}`;
+            opt.onclick = (e) => {
+                e.stopPropagation();
+                currentSDK = i;
+                selectedVal.innerText = `Android SDK ${i}`;
+                menu.classList.remove('open');
+                validate();
+            };
+            menu.appendChild(opt);
+        }
+
+        trigger.onclick = (e) => { e.stopPropagation(); menu.classList.toggle('open'); };
+        document.addEventListener('click', () => menu.classList.remove('open'));
+
+        function validate() {
+            const desc = document.getElementById('issue').value.trim();
+            submitBtn.disabled = !(currentSDK && desc.length > 5);
+        }
+
+        function submit() {
+            const desc = document.getElementById('issue').value;
+            tg.sendData(JSON.stringify({ sdk: currentSDK, desc: desc }));
+        }
+    </script>
+</body>
+</html>
